@@ -1,0 +1,27 @@
+[Entries]
+PRO3=tcp 192.168.2.50
+IDOCV=tcp 192.168.2.65
+TP=PRO3:cresnet 09
+USB=usb
+EXGATEWAY MASTER STATE=tcp 192.168.2.56
+EXGATEWAY SALON=tcp 192.168.2.55
+XPSA=tcp 192.168.2.60
+CEN-CI3=tcp 192.168.2.51
+DIN-1DIM4=PRO3:cresnet 70
+FTP=tcp mysharonann.mycrestron.com
+
+[Settings]
+DefaultEntry=
+
+[Comments]
+PRO3=
+IDOCV=
+TP=
+USB=
+EXGATEWAY MASTER STATE=
+EXGATEWAY SALON=
+XPSA=
+CEN-CI3=
+DIN-1DIM4=
+FTP=
+

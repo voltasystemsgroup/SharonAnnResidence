@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<File Type='Manifest' Version='2.1.0' ObjectDisplayList='1'>
+<Project FileName='SHARONANNIPHONEPRO2.zip' Size='414081' Build='20130312141035'>
+<Sources>
+<Source FileName='SHARONANNIPHONEPRO2.xml' Size='556' Type='Application' Build='20130312141035' />
+<Source FileName='SHARONANNIPHONEPRO2_Resource.xml' Size='10071' Type='Resource' Build='20130312141035' />
+<Source FileName='Y MASTER STATE DIRECTV FAV - MASTER STATE.xml' Size='16683' Type='Subpage' Build='20130312141012' />
+<Source FileName='X MAIN SALON DIRECTV FAV.xml' Size='16657' Type='Subpage' Build='20130312141011' />
+<Source FileName='ZZ Home Button.xml' Size='941' Type='Subpage' Build='20130312141007' />
+<Source FileName='ZZ Crestron Logo.xml' Size='1267' Type='Subpage' Build='20130312141007' />
+<Source FileName='ZZ Back Button.xml' Size='1168' Type='Subpage' Build='20130312141007' />
+<Source FileName='Z IDOCV SERCH BUTTON.xml' Size='377' Type='Subpage' Build='20130312141007' />
+<Source FileName='Z IDOCV SERCH.xml' Size='370' Type='Subpage' Build='20130312141007' />
+<Source FileName='Z IDOCV SEARCH.xml' Size='371' Type='Subpage' Build='20130312141007' />
+<Source FileName='Z IDOCV PLAYER.xml' Size='10961' Type='Subpage' Build='20130312141007' />
+<Source FileName='Z IDOCV LOADING LIBRARY.xml' Size='380' Type='Subpage' Build='20130312141006' />
+<Source FileName='Z IDOCV IPOD NOT SUPPORTED.xml' Size='383' Type='Subpage' Build='20130312141006' />
+<Source FileName='Z IDOCV IPOD NOT DETECTED.xml' Size='1206' Type='Subpage' Build='20130312141006' />
+<Source FileName='Z IDOCV DEVICE NOT DETECTED.xml' Size='1208' Type='Subpage' Build='20130312141006' />
+<Source FileName='Z IDOCV BUSY.xml' Size='1193' Type='Subpage' Build='20130312141006' />
+<Source FileName='Z IDOCV BROWSE.xml' Size='17801' Type='Subpage' Build='20130312141006' />
+<Source FileName='Z IDOCV BACK BUTTON.xml' Size='1298' Type='Subpage' Build='20130312141004' />
+<Source FileName='Y MASTER STATE DIRECTV Numbers - MASTER STATE.xml' Size='24250' Type='Subpage' Build='20130312141004' />
+<Source FileName='Y MASTER STATE DIRECTV DVR - MASTER STATE.xml' Size='21474' Type='Subpage' Build='20130312141003' />
+<Source FileName='X MAIN SALON DIRECTV Numbers.xml' Size='24224' Type='Subpage' Build='20130312141003' />
+<Source FileName='X MAIN SALON DIRECTV DVR.xml' Size='21448' Type='Subpage' Build='20130312141001' />
+<Source FileName='C BOAT AUDIO.xml' Size='25821' Type='Page' Build='20130312141095' />
+<Source FileName='B Media Selection - MASTER STATE.xml' Size='7969' Type='Page' Build='20130312141093' />
+<Source FileName='B Media Direc TV - MASTER STATE.xml' Size='5255' Type='Page' Build='20130312141092' />
+<Source FileName='B Media Blu-Ray - MASTER STATE.xml' Size='19444' Type='Page' Build='20130312141092' />
+<Source FileName='B Lift Controls - MASTER STATE.xml' Size='6048' Type='Page' Build='20130312141090' />
+<Source FileName='B IDOCV - MASTER STATE.xml' Size='6317' Type='Page' Build='20130312141090' />
+<Source FileName='A PLEASE WAIT.xml' Size='1251' Type='Page' Build='20130312141090' />
+<Source FileName='A Media Selection.xml' Size='7894' Type='Page' Build='20130312141090' />
+<Source FileName='A Media Direc TV.xml' Size='5189' Type='Page' Build='20130312141086' />
+<Source FileName='A Media Blu-Ray.xml' Size='19420' Type='Page' Build='20130312141084' />
+<Source FileName='A Lift Controls.xml' Size='6015' Type='Page' Build='20130312141084' />
+<Source FileName='A IDOCV.xml' Size='6293' Type='Page' Build='20130312141082' />
+<Source FileName='A Home.xml' Size='5160' Type='Page' Build='20130312141082' />
+</Sources>
+</Project>
+</File>

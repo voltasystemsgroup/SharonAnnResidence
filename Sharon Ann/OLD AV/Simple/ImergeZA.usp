@@ -1,0 +1,397 @@
+/***********************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+***********************************************************************/
+/*
+Dealer Name: Crestron Electronics
+System Name:
+System Number:
+Programmer: CRR
+Comments:
+*/
+
+/***********************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+***********************************************************************/
+#SYMBOL_NAME "Imerge SoundServer Single Zone Processor"
+// #HINT ""
+#DEFINE_CONSTANT DISC 53
+#DEFINE_CONSTANT ARTIST 54
+#DEFINE_CONSTANT GENRE 55
+#DEFINE_CONSTANT ARTISTMEDIA 56
+#DEFINE_CONSTANT GENREMEDIA 57
+#DEFINE_CONSTANT ARTISTMEDIA2 65
+#DEFINE_CONSTANT GENREMEDIA2 66
+#DEFINE_CONSTANT PLAYLIST 67
+#DEFINE_CONSTANT SEARCHDISC 68
+#DEFINE_CONSTANT SEARCHPLAYLIST 69
+
+
+#HELP_BEGIN
+For use only within the Crestron suite of Imerge control modules
+#HELP_END
+
+
+/***********************************************************************
+  Include Libraries
+  (Uncomment and include additional librarys as needed)
+***********************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/***********************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+***********************************************************************/
+DIGITAL_INPUT First, Prev, Next, Last, BrowseDisc, BrowseArtist, BrowseGenre;
+DIGITAL_INPUT BrowsePlaylist, BrowseFwd, BrowseBack, BrowseSelect, SearchText, SearchLetter;
+ANALOG_INPUT TracksPerScreen, TrackSelector, Zone;
+STRING_INPUT DiscId$[12]; 
+STRING_INPUT ID1$[2];
+STRING_INPUT ID2$[2];
+STRING_INPUT ID3$[2];
+STRING_INPUT ID4$[2];
+STRING_INPUT ID5$[2];
+STRING_INPUT ID6$[2];
+STRING_INPUT ID7$[2];
+STRING_INPUT ID8$[2];
+STRING_INPUT GenreMarker$[12];
+STRING_INPUT GenreCount$[3];
+STRING_INPUT GenreMediaMarker$[12];
+STRING_INPUT GenreMediaCount$[3];
+STRING_INPUT ArtistMarker$[12];
+STRING_INPUT ArtistCount$[3];
+STRING_INPUT ArtistMediaMarker$[12];
+STRING_INPUT ArtistMediaCount$[3];
+STRING_INPUT MediaMarker$[12];
+STRING_INPUT MediaCount$[3];
+STRING_INPUT PlayListMarker$[12];
+STRING_INPUT PlayListCount$[3];
+STRING_INPUT BrowseId$[30];
+STRING_INPUT Min$[3];
+STRING_INPUT Type$[8];
+STRING_INPUT TotalTracks$[3];
+STRING_INPUT CurrentTrack$[3];
+STRING_INPUT FirstTrack$[3];
+STRING_INPUT SearchText$[20];
+STRING_INPUT SearchLetter$[1];
+// BUFFER_INPUT 
+
+// DIGITAL_OUTPUT 
+ANALOG_OUTPUT TrackFb; 
+STRING_OUTPUT Imerge_Tx$;
+
+/***********************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+***********************************************************************/
+INTEGER FirstAn, MediaCounter, BrowseCounter, BrowseType, Minimum, TotalTracks, CurrentTrack, FirstTrack, screen;
+STRING Marker$[12], SearchInt$[20];
+    
+Function UpdateTrackInfo()
+	{
+	if((CurrentTrack >= FirstTrack) && (CurrentTrack <= FirstTrack + TracksPerScreen - 1))
+		{
+		TrackFb = CurrentTrack - FirstTrack + 1;
+		}
+	else
+		{
+		TrackFb = 0;
+		}
+	}
+	  
+	  
+Function ProcessSearch()
+	{
+	Switch(BrowseType)
+		{
+		Case(DISC):
+			{     
+			BrowseType = SEARCHDISC;
+			Marker$ = MediaMarker$;
+			MediaCounter = atoi(MediaCount$);
+			}
+		CASE(ARTIST):
+			{
+			BrowseType = ARTISTMEDIA;
+			Marker$ = ArtistMediaMarker$;
+			MediaCounter = atoi(ArtistMediaCount$);
+			}
+		CASE(ARTISTMEDIA):
+			{
+			BrowseType = ARTISTMEDIA;
+			Marker$ = ArtistMediaMarker$;
+			MediaCounter = atoi(ArtistMediaCount$);
+			}
+		CASE(ARTISTMEDIA2):
+			{
+			BrowseType = ARTISTMEDIA;
+			Marker$ = ArtistMediaMarker$;          
+			MediaCounter = atoi(ArtistMediaCount$);
+			}
+		CASE(GENRE):
+			{
+			BrowseType = GENREMEDIA;
+			Marker$ = GenreMediaMarker$;
+			MediaCounter = atoi(GenreMediaCount$);
+			}
+		CASE(GENREMEDIA):
+			{
+			BrowseType = GENREMEDIA;
+			Marker$ = GenreMediaMarker$;          
+			MediaCounter = atoi(GenreMediaCount$);
+			}
+		CASE(GENREMEDIA2):
+			{
+			BrowseType = GENREMEDIA;
+			Marker$ = GenreMediaMarker$;          
+			MediaCounter = atoi(GenreMediaCount$);
+			}
+		CASE(PLAYLIST):
+			{
+			Browsetype = SEARCHPLAYLIST;
+			Marker$ = PlaylistMarker$;
+			MediaCounter = atoi(PlaylistCount$);
+			}
+		}
+	Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><FIND><MARKER>%s<START>%s<NEXT>~\n", Zone, CHR(BrowseType), Zone, Marker$, SearchInt$);
+	Switch(BrowseType)
+		{
+		Case(ARTISTMEDIA):
+			{
+			BrowseType = ARTISTMEDIA2;
+			}
+		Case(GENREMEDIA):
+			{
+			BrowseType = GENREMEDIA2;
+			}
+		Case(SEARCHDISC):
+			{
+			BrowseType = DISC;
+			}
+		Case(SEARCHPLAYLIST):
+			{
+			Browsetype = Playlist;
+			}
+		}
+	}
+
+	
+/***********************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+***********************************************************************/
+
+PUSH First
+	{
+    MakeString(Imerge_Tx$, "#CN%02dF3#@server@$SEARCH$<%s><ID>%s<TRACK><FROM>1<FOR>%d<NONE>~\x0D\x0A", Zone, Type$, DiscId$, TracksPerScreen);
+	}
+	
+PUSH Next
+	{
+	FirstAn = FirstTrack + TracksPerScreen;
+	if(FirstAn <= TotalTracks)
+		{
+		MakeString(Imerge_Tx$, "#CN%02dF3#@server@$SEARCH$<%s><ID>%s<TRACK><FROM>%d<FOR>%d<NONE>~\x0D\x0A", Zone, Type$, DiscId$, FirstAn, TracksPerScreen);
+        } 
+    }
+
+PUSH Prev
+	{
+	FirstAn = FirstTrack - TracksPerScreen;
+	if(FirstAn s> 0)
+		{
+		MakeString(Imerge_Tx$, "#CN%02dF3#@server@$SEARCH$<%s><ID>%s<TRACK><FROM>%d<FOR>%d<NONE>~\x0D\x0A", Zone, Type$, DiscId$, FirstAn, TracksPerScreen);
+		}
+	}
+	
+PUSH Last
+	{
+	if(TotalTracks mod TracksPerscreen > 0) screen = TotalTracks / TracksPerScreen + 1;
+	else screen = TotalTracks / TracksPerScreen;
+	FirstAn = (screen - 1) * TracksPerScreen + 1;
+	MakeString(Imerge_Tx$, "#CN%02dF3#@server@$SEARCH$<%s><ID>%s<TRACK><FROM>%d<FOR>%d<NONE>~\x0D\x0A", Zone, Type$, DiscId$, FirstAn, TracksPerScreen);
+	}
+
+CHANGE CurrentTrack$
+	{
+	CurrentTrack = atoi(CurrentTrack$);
+	call UpdateTrackInfo();
+	}
+	
+CHANGE TotalTracks$
+	{
+	TotalTracks = atoi(TotalTracks$);
+    }
+
+CHANGE FirstTrack$
+	{
+	FirstTrack = atoi(FirstTrack$);
+	}
+    
+CHANGE TrackSelector
+	{
+    if((TrackSelector > 0) && (TrackSelector < 9) && (TrackSelector + FirstTrack - 1 <= TotalTracks))
+    	{
+    	Switch(TrackSelector)
+    		{
+    		Case(1): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID1$); }
+            Case(2): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID2$); }
+            Case(3): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID3$); }
+            Case(4): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID4$); }
+            Case(5): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID5$); }
+            Case(6): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID6$); }
+            Case(7): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID7$); }
+            Case(8): { Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<TRACK><NUM>%s~\n", Zone, Zone, ID8$); }
+            }
+        }
+    }
+
+Change ID1$, ID2$, ID3$, ID4$, ID5$, ID6$, ID7$, ID8$
+	{
+	call updateTrackInfo();
+	}
+
+CHANGE Min$
+	{
+	Minimum = atoi(Min$);
+	BrowseCounter = Minimum;
+	}
+	
+PUSH BrowseDisc
+	{
+	BrowseType = DISC;
+	MediaCounter = atoi(MediaCount$);
+	BrowseCounter = 1;
+	Marker$ = MediaMarker$;
+	Minimum = 1;
+	Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%u<FOR>1~\n", Zone, CHR(BrowseType), Zone, Marker$, BrowseCounter);
+	}
+
+PUSH BrowseArtist
+	{
+	BrowseType = ARTIST;
+	MediaCounter = atoi(ArtistCount$);
+	BrowseCounter = 1;
+	Marker$ = ArtistMarker$;
+	Minimum = 1;
+	Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%u<FOR>1~\n", Zone, CHR(BrowseType), Zone, Marker$, BrowseCounter);
+	}
+
+PUSH BrowseGenre
+	{
+	BrowseType = GENRE;
+	MediaCounter = atoi(GenreCount$);
+	BrowseCounter = 1;
+	MArker$ = GenreMarker$;
+	Minimum = 1;
+	Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%u<FOR>1~\n", Zone, CHR(BrowseType), Zone, Marker$, BrowseCounter);
+	}
+
+PUSH BrowsePlaylist
+	{
+	BrowseType = PLAYLIST;
+	MediaCounter = atoi(PlaylistCount$);
+	BrowseCounter = 1;
+	Marker$ = PlayListMarker$;
+	Minimum = 1;
+	Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%u<FOR>1~\n", Zone, CHR(BrowseType), Zone, Marker$, BrowseCounter);
+	}
+		
+PUSH BrowseFwd
+	{
+	if(BrowseCounter < MediaCounter)
+		{
+		BrowseCounter = BrowseCounter + 1;
+		Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%u<FOR>1~\n", Zone, CHR(BrowseType), Zone, Marker$, BrowseCounter);
+		}
+	}
+
+PUSH BrowseBack
+	{
+	if(BrowseCounter > 1)
+		{
+		BrowseCounter = BrowseCounter - 1;
+		Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%u<FOR>1~\n", Zone, chr(BrowseType), Zone, Marker$, BrowseCounter);
+		}
+	}
+	
+PUSH BrowseSelect
+	{
+	Switch(BrowseType)
+		{
+		Case(DISC):
+			{
+			Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<ID>%s~\n", Zone, Zone, BrowseId$);
+			}
+		Case(PLAYLIST):
+			{
+			Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<ID>%s~\n", Zone, Zone, BrowseId$);
+			}
+		Case(ARTIST):
+			{
+			BrowseType = ARTISTMEDIA;
+			MArker$ = ArtistMediaMarker$;
+			BrowseCounter = 0;
+			Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><FIND><MARKER>%s<NAME>%s~\n", Zone, chr(BrowseType), Zone, Marker$, BrowseId$);
+			BrowseType = ARTISTMEDIA2;
+			MediaCounter = atoi(ArtistMediaCount$);
+			}
+		Case(ARTISTMEDIA2):
+			{
+			Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<ID>%s~\n", Zone, Zone, BrowseId$);
+			}
+		Case(GENRE):
+			{
+			BrowseType = GENREMEDIA;
+			Marker$ = GenreMediaMarker$;
+			BrowseCounter = 0;
+			Makestring(Imerge_Tx$, "#CN%02dF%s#@Z%02d@$SEARCH$<CACHE><FIND><MARKER>%s<NAME>%s~\n", Zone, chr(BrowseType), Zone, Marker$, BrowseId$);
+			BrowseType = GENREMEDIA2;
+			MediaCounter = atoi(GenreMediaCount$); 
+			}
+		Case(GENREMEDIA2):
+			{
+			Makestring(Imerge_Tx$, "#CN%02dF0#@Z%02d@$SELECT$<ID>%s~\n", Zone, Zone, BrowseId$);
+			}
+		}
+	}
+		
+PUSH SearchText
+	{
+	SearchInt$ = SearchText$;
+	Call ProcessSearch();
+	}
+
+PUSH SearchLetter
+	{
+	SearchInt$ = SearchLetter$;
+	CAll ProcessSearch();
+	}
+		
+		
+/***********************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+***********************************************************************/
+
+Function Main()
+	{
+    ID1$ = " ";
+	ID2$ = " ";
+	ID3$ = " ";
+	ID4$ = " ";
+	ID5$ = " ";
+	ID6$ = " ";
+	ID7$ = " ";
+	ID8$ = " ";
+	BrowseCounter = 0;
+	BrowseType = DISC;
+	Marker$ = " "; 
+	Type$ = "MEDIA";
+	sEARCHtEXT$ = "A";
+	}
+
+

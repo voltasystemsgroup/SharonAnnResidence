@@ -1,0 +1,19 @@
+[Entries]
+PRO2=tcp 192.168.1.50
+IDOCV=tcp 192.168.1.51
+TP=PRO2:cresnet 09
+TVAV=PRO2:cresnet 55
+MC2W=usb
+6l=tcp 192
+
+[Settings]
+DefaultEntry=
+
+[Comments]
+PRO2=
+IDOCV=
+TP=
+TVAV=
+MC2W=
+6l=
+

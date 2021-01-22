@@ -1,0 +1,816 @@
+[
+Version=1
+]
+[
+ObjTp=FSgntr
+Sgntr=UserMacro
+RelVrs=2.02.11
+IntStrVrs=2
+MinSMWVrs=0
+MinTIOVrs=0
+SavedBy=SMW2.02.11
+]
+[
+ObjTp=Hd
+S0Nd=1
+S1Nd=2
+SLNd=3
+PrNm=Imerge SoundServer Global Processor Version 2.umc
+DbVr=15.7.5
+PgmNm=CRR
+DlrNm=Crestron Electronics
+CltNm=Processes all global information received from/sent to the Imerge system
+McNm=Imerge SoundServer Global Processor Version 2
+SmVr=167
+DvVr=167
+TpN1=1
+TpN2=2
+TpN3=3
+TpN4=4
+TpN5=5
+Cmn1=SIMPLWINDOWS NAME: Imerge SoundServer Global Processor Version 2\\\\MANUFACTURER:
+Cmn2=||1Imerge\\MODEL: SoundServer\\\\CATEGORY: OTHER\\\\VERSION: 1.0\\\\SUMMARY:
+Cmn3=||1Processes all global information received from/sent to the Imerge||1
+Cmn4=\\system\\\\\\GENERAL NOTES: \\\\This module performs two functions:
+Cmn5=\\\\1. It will send all non-zone-specific commands to the Imerge||1
+Cmn6=system (such \\as opening/closing databases)\\\\2. It will process||1
+Cmn7=all information received from the Imerge system, and \\will map||1
+Cmn8=the information to the appropriate zone outputs. These outputs \\can||1
+Cmn9=then be connected to the corresponding inputs on the Imerge Single/Multi||1
+Cmn10=\\Zone Control module, as well as the Imerge Setup and Record modules.
+Cmn11=\\\\Depending on the model of the Imerge SoundServer, it may support||1
+Cmn12=anywhere \\from 1 - 16 separate audio outputs (zones). This module||1
+Cmn13=provides zone specific \\information for all sixteen zones. These||1
+Cmn14=are the ZONE-*-STATUS and \\ZONE-*-INFORMATION$ outputs. Regardles||1
+Cmn15=of how many zones you want to \\control from the Crestron system,||1
+Cmn16=you should only need one copy of this \\module in your program.||1
+Cmn17=You will need a separate Imerge SoundServer Zone \\Control module||1
+Cmn18=for each zone that you are controlling. Or you can use\\an Imerge||1
+Cmn19=SoundServer Selectable Zone Control module to control all zones.
+Cmn20=\\\\This module also provides SETUP-INFORMATION$ and RECORD-INFORMATION$||1
+Cmn21=outputs.\\These outputs should be routed to the corresponding Imerge||1
+Cmn22=Setup\\and Record modules if they are being used in the system.\\\\The||1
+Cmn23=Imerge system can be controlled either using RS232 control, or using||1
+Cmn24=\\TCP/IP control. All sixteen zones can be controlled through a||1
+Cmn25=single \\RS232 port, or a single TCP/IP Client. Due to the large||1
+Cmn26=amount of data \\being transferred, you must enable RTS/CTS handshaking||1
+Cmn27=when using RS232 \\control. If using TCP/IP control, use port number||1
+Cmn28=6789d. You will need to \\establish the TCP/IP connection before||1
+Cmn29=any control will be possible. See \\the demo program for an example||1
+Cmn30=of the TCP/IP application.\\\\Before any searching or browsing functions||1
+Cmn31=will work, you must pulse the \\OPEN-DATABASES input. This will||1
+Cmn32=request the database information which is \\needed when performing||1
+Cmn33=a search. Typically, you could pulse this input on \\start-up of||1
+Cmn34=the Crestron system. If the database information ever changes \\in||1
+Cmn35=the Imerge system (such as when a new disc is added) this module||1
+Cmn36=should\\automatically re-open the necessary databases.\\\\This module||1
+Cmn37=has a parameter field which allows you to limit the length of \\the||1
+Cmn38=text fields which will be displayed on the touch panel. This can||1
+Cmn39=\\prevent having text which is too long for display in an indirect||1
+Cmn40=text \\field. You should enter this as a decimal number with a d||1
+Cmn41=suffix. So for \\a maximum length of 36 characters, enter 36d\\\\Since||1
+Cmn42=this module uses Simpl+, it can only be used on a Generation CNX||1
+Cmn43=\\type control system.\\\\\\\\\\CRESTRON HARDWARE REQUIRED: CNXCOM,||1
+Cmn44=ST-COM, CNXENET+\\\\\\SETUP OF CRESTRON HARDWARE: \\For RS232:\\Baud||1
+Cmn45=Rate - 38400\\Parity - Even\\Data Bits - 7\\Stop Bits - 1\\RTS/CTS||1
+Cmn46=handshaking must be enabled\\\\For ethernet communications:\\Must||1
+Cmn47=have a CNXENET+ card\\Use the TCP/IP Client\\Use port # 6789d\\\\\\VENDOR||1
+Cmn48=FIRMWARE: Version 1.03\\\\\\VENDOR SETUP: None\\\\\\CABLE NUMBER:
+Cmn49=||1CNSP-532\\\\\\INPUT DESCRIPTIONS: \\\\Name             Type Description\\OPEN-
+Cmn50=DATABASES     D  Pulse to open the databases. This must be done||1
+Cmn51=\\                      before any searching functions are performed\\CLOSE-
+Cmn52=DATABASES    D  Pulse to close the databases\\IMERGE-RX$||8
+Cmn53=||1S  Serial data signal to be routed from a 2-way RS232 \\||7
+Cmn54=||?port\\\\\\OUTPUT DESCRIPTIONS: \\\\Name||:
+Cmn55=||3Type Description\\ZONE-*-STATUS      A  Contains transport status||1
+Cmn56=information for each zone. \\                      Should be routed||1
+Cmn57=to the corresponding input of the \\                      Imerge||1
+Cmn58=SoundServer Zone Control module\\ZONE-*-INFORMATION$  S  Contains||1
+Cmn59=serial information for each zone. Should \\||E
+Cmn60=||1be routed to the corresponding input of the Imerge \\||:
+Cmn61=||<SoundServer Zone Control module\\SETUP-INFORMATION$||1
+Cmn62=S  Contains serial information to be used by the\\||>
+Cmn63=||8Imerge SoundServer Setup module.\\RECORD-INFORMATION$ S||1
+Cmn64=Contains serial information to be used by the\\||A
+Cmn65=||5Imerge SoundServer Record module.\\GENRE-MARKER/COUNT$  S||2
+Cmn66=Contains genre database information. Should be \\||?
+Cmn67=||7routed to the corresponding input on all Imerge \\||7
+Cmn68=||?SoundServer Zone Control modules\\ARTIST-MARKER/COUNT$||1
+Cmn69=||1S  Contains artist database information. Should be \\||:
+Cmn70=||<routed to the corresponding input on all Imerge \\||2
+Cmn71=||DSoundServer Zone Control modules\\MEDIA-MARKER/COUNT$||1
+Cmn72=||1S  Contains media database information. Should be \\||;
+Cmn73=||;routed to the corresponding input on all Imerge \\||3
+Cmn74=||CSoundServer Zone Control modules\\PLAYLIST-MARKER/COUNT$||1
+Cmn75=||1S  Contains playlist database information. Should \\||;
+Cmn76=||;be routed to the corresponding input on all Imerge \\||1
+Cmn77=||ESoundServer Zone Control modules\\IMERGE-TX$||1
+Cmn78=||8S  Serial data signal to be routed to a 2-way RS232 port\\\\\\OPS||1
+Cmn79=USED FOR TESTING: 5.12.26x.upz\\\\COMPILER USED FOR TESTING: SimplWindows||1
+Cmn80=Ver 1.61.12\\\\SAMPLE PROGRAM: Imerge SoundServer Demo Program Version||1
+Cmn81=2\\\\REVISION HISTORY: None\\
+]
+[
+ObjTp=Bk
+Nm1=\
+Sx1=0
+Sy1=0
+Mx1=0
+]
+[
+ObjTp=Symbol
+Name=Imerge SoundServer Global Processor Version 2
+Code=1
+SmplCName=Imerge SoundServer Global Processor Version 2.umc
+Smpl-C=3
+Convertable=True
+CompilerTimePrecision=Single_Or_Double_Precision
+Exclusions=1,19,20,21,88,89,310,
+Hint=Processes all global information received from/sent to the Imerge system
+SMWRev=0
+TIORev=0
+S+=1
+HelpID=1055
+NumFixedInputs=3
+NumFixedOutputs=47
+NumFixedParams=1
+MinVariableInputs=0
+MinVariableInputsList2=0
+MinVariableInputsList3=0
+MinVariableOutputs=0
+MinVariableOutputsList2=0
+MinVariableOutputsList3=0
+MinVariableParams=0
+SymbolTree=32
+InputSigType1=Digital
+InputSigType2=Digital
+InputSigType3=Serial
+OutputSigType1=Analog
+OutputSigType2=Serial
+OutputSigType3=Analog
+OutputSigType4=Serial
+OutputSigType5=Analog
+OutputSigType6=Serial
+OutputSigType7=Analog
+OutputSigType8=Serial
+OutputSigType9=Analog
+OutputSigType10=Serial
+OutputSigType11=Analog
+OutputSigType12=Serial
+OutputSigType13=Analog
+OutputSigType14=Serial
+OutputSigType15=Analog
+OutputSigType16=Serial
+OutputSigType17=Analog
+OutputSigType18=Serial
+OutputSigType19=Analog
+OutputSigType20=Serial
+OutputSigType21=Analog
+OutputSigType22=Serial
+OutputSigType23=Analog
+OutputSigType24=Serial
+OutputSigType25=Analog
+OutputSigType26=Serial
+OutputSigType27=Analog
+OutputSigType28=Serial
+OutputSigType29=Analog
+OutputSigType30=Serial
+OutputSigType31=Analog
+OutputSigType32=Serial
+ParamSigType1=Time|Percent|Constant|String|FileName|HexAddress|Any
+InputCue1=OPEN-DATABASES
+InputCue2=CLOSE-DATABASES
+InputCue3=IMERGE-RX$
+OutputCue1=ZONE-1-STATUS
+OutputCue2=ZONE-1-INFORMATION$
+OutputCue3=ZONE-2-STATUS
+OutputCue4=ZONE-2-INFORMATION$
+OutputCue5=ZONE-3-STATUS
+OutputCue6=ZONE-3-INFORMATION$
+OutputCue7=ZONE-4-STATUS
+OutputCue8=ZONE-4-INFORMATION$
+OutputCue9=ZONE-5-STATUS
+OutputCue10=ZONE-5-INFORMATION$
+OutputCue11=ZONE-6-STATUS
+OutputCue12=ZONE-6-INFORMATION$
+OutputCue13=ZONE-7-STATUS
+OutputCue14=ZONE-7-INFORMATION$
+OutputCue15=ZONE-8-STATUS
+OutputCue16=ZONE-8-INFORMATION$
+OutputCue17=ZONE-9-STATUS
+OutputCue18=ZONE-9-INFORMATION$
+OutputCue19=ZONE-10-STATUS
+OutputCue20=ZONE-10-INFORMATION$
+OutputCue21=ZONE-11-STATUS
+OutputCue22=ZONE-11-INFORMATION$
+OutputCue23=ZONE-12-STATUS
+OutputCue24=ZONE-12-INFORMATION$
+OutputCue25=ZONE-13-STATUS
+OutputCue26=ZONE-13-INFORMATION$
+OutputCue27=ZONE-14-STATUS
+OutputCue28=ZONE-14-INFORMATION$
+OutputCue29=ZONE-15-STATUS
+OutputCue30=ZONE-15-INFORMATION$
+OutputCue31=ZONE-16-STATUS
+OutputCue32=ZONE-16-INFORMATION$
+OutputCue33=SETUP-INFORMATION$
+OutputCue34=RECORD-INFORMATION$
+OutputCue35=GENRE-MARKER$
+OutputCue36=GENRE-COUNT$
+OutputCue37=GENRE-MEDIA-MARKER$
+OutputCue38=GENRE-MEDIA-COUNT$
+OutputCue39=ARTIST-MARKER$
+OutputCue40=ARTIST-COUNT$
+OutputCue41=ARTIST-MEDIA-MARKER$
+OutputCue42=ARTIST-MEDIA-COUNT$
+OutputCue43=MEDIA-MARKER$
+OutputCue44=MEDIA-COUNT$
+OutputCue45=PLAYLIST-MARKER$
+OutputCue46=PLAYLIST-COUNT$
+OutputCue47=IMERGE-TX$
+ParamCue1=MAX-CHARACTERS
+FileName=Imerge SoundServer Global Processor Version 2.umc
+]
+[
+ObjTp=Sm
+H=1
+SmC=157
+Nm=Central Control Modules
+CF=2
+n1I=1
+n1O=1
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=2
+SmC=157
+Nm=Network Modules
+CF=2
+n1I=1
+n1O=1
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=3
+SmC=157
+Nm=Ethernet
+CF=2
+n1I=1
+n1O=1
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=4
+SmC=156
+Nm=Logic
+CF=2
+mC=4
+C1=8
+C2=11
+C3=9
+C4=10
+]
+[
+ObjTp=Sm
+H=5
+SmC=157
+Nm=DefineArguments
+CF=2
+n1I=1
+n1O=1
+mC=1
+C1=6
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=6
+SmC=55
+PrH=5
+CF=2
+n1I=3
+n1O=47
+mI=3
+I1=52
+I2=53
+I3=7
+mO=47
+tO=47
+O1=4
+O2=23
+O3=8
+O4=24
+O5=9
+O6=25
+O7=10
+O8=26
+O9=11
+O10=27
+O11=12
+O12=28
+O13=13
+O14=29
+O15=14
+O16=30
+O17=15
+O18=31
+O19=16
+O20=32
+O21=17
+O22=33
+O23=18
+O24=34
+O25=19
+O26=35
+O27=20
+O28=36
+O29=21
+O30=37
+O31=22
+O32=38
+O33=60
+O34=61
+O35=39
+O36=40
+O37=41
+O38=42
+O39=43
+O40=44
+O41=45
+O42=46
+O43=47
+O44=48
+O45=49
+O46=50
+O47=51
+mP=1
+P1=MAX-CHARACTERS
+]
+[
+ObjTp=Sm
+H=8
+SmC=32
+PrH=4
+CF=2
+n1I=1
+n1O=2
+mI=1
+I1=2
+mO=2
+tO=2
+O1=5
+O2=6
+mP=2
+P1=#MAX-CHARACTERS
+P2=8d
+]
+[
+ObjTp=Sm
+H=9
+SmC=101
+PrH=4
+CF=2
+n1I=10
+n1O=2
+Cmn1=SEND ALL FIXED COMMANDS\\
+mI=10
+I3=52
+I4=52
+I5=52
+I6=52
+I7=52
+I8=52
+I9=52
+I10=52
+mO=2
+tO=2
+O1=51
+mP=10
+P1=
+P2="#CN01F4#@server@$SEARCH$<CACHE><OPEN>GENRE~\n"
+P3="#CN01F4#@server@$SEARCH$<CACHE><OPEN>GENREMEDIA~\n"
+P4="#CN01F4#@server@$SEARCH$<CACHE><OPEN>ARTIST~\n"
+P5="#CN01F4#@server@$SEARCH$<CACHE><OPEN>ARTISTMEDIA~\n"
+P6="#CN01F4#@server@$SEARCH$<CACHE><OPEN>MEDIA~\n"
+P7="#CN01F4#@server@$SEARCH$<CACHE><OPEN>PLAYLIST~\n"
+P8="#CN01F0#@server@$STATUS$<UPDATE><CACHE><CLOSE>ON~\n"
+P9="#CN01F0#@server@$COMMS$<SET>Encode<ITEM>Type<HAS>ASCII~\n"
+P10=
+]
+[
+ObjTp=Sm
+H=10
+SmC=72
+PrH=4
+CF=2
+n1I=1
+n1O=2
+mI=1
+I1=7
+mO=2
+tO=2
+O1=54
+mP=1
+P1=1.5s
+]
+[
+ObjTp=Sm
+H=11
+SmC=103
+Nm=ImerPro2.usp
+PrH=4
+CF=2
+n1I=2
+n2I=3
+mI=5
+I1=53
+I2=54
+I3=6
+I4=5
+I5=7
+mO=47
+tO=47
+O1=4
+O2=8
+O3=9
+O4=10
+O5=11
+O6=12
+O7=13
+O8=14
+O9=15
+O10=16
+O11=17
+O12=18
+O13=19
+O14=20
+O15=21
+O16=22
+O17=39
+O18=40
+O19=41
+O20=42
+O21=43
+O22=44
+O23=45
+O24=46
+O25=47
+O26=48
+O27=49
+O28=50
+O29=51
+O30=23
+O31=24
+O32=25
+O33=26
+O34=27
+O35=28
+O36=29
+O37=30
+O38=31
+O39=32
+O40=33
+O41=34
+O42=35
+O43=36
+O44=37
+O45=38
+O46=60
+O47=61
+mP=1
+P1=
+]
+[
+ObjTp=Sg
+H=4
+Nm=ZONE-1-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=5
+Nm=MAX-CHARACTERS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=6
+Nm=TRACKS-PER-SCREEN
+SgTp=2
+]
+[
+ObjTp=Sg
+H=7
+Nm=IMERGE-RX$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=8
+Nm=ZONE-2-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=9
+Nm=ZONE-3-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=10
+Nm=ZONE-4-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=11
+Nm=ZONE-5-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=12
+Nm=ZONE-6-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=13
+Nm=ZONE-7-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=14
+Nm=ZONE-8-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=15
+Nm=ZONE-9-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=16
+Nm=ZONE-10-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=17
+Nm=ZONE-11-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=18
+Nm=ZONE-12-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=19
+Nm=ZONE-13-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=20
+Nm=ZONE-14-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=21
+Nm=ZONE-15-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=22
+Nm=ZONE-16-STATUS
+SgTp=2
+]
+[
+ObjTp=Sg
+H=23
+Nm=ZONE-1-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=24
+Nm=ZONE-2-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=25
+Nm=ZONE-3-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=26
+Nm=ZONE-4-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=27
+Nm=ZONE-5-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=28
+Nm=ZONE-6-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=29
+Nm=ZONE-7-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=30
+Nm=ZONE-8-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=31
+Nm=ZONE-9-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=32
+Nm=ZONE-10-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=33
+Nm=ZONE-11-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=34
+Nm=ZONE-12-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=35
+Nm=ZONE-13-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=36
+Nm=ZONE-14-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=37
+Nm=ZONE-15-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=38
+Nm=ZONE-16-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=39
+Nm=GENRE-MARKER$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=40
+Nm=GENRE-COUNT$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=41
+Nm=GENRE-MEDIA-MARKER$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=42
+Nm=GENRE-MEDIA-COUNT$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=43
+Nm=ARTIST-MARKER$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=44
+Nm=ARTIST-COUNT$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=45
+Nm=ARTIST-MEDIA-MARKER$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=46
+Nm=ARTIST-MEDIA-COUNT$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=47
+Nm=MEDIA-MARKER$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=48
+Nm=MEDIA-COUNT$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=49
+Nm=PLAYLIST-MARKER$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=50
+Nm=PLAYLIST-COUNT$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=51
+Nm=IMERGE-TX$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=52
+Nm=OPEN-DATABASES
+]
+[
+ObjTp=Sg
+H=53
+Nm=CLOSE-DATABASES
+]
+[
+ObjTp=Sg
+H=54
+Nm=IMERGE-CHANGING
+]
+[
+ObjTp=Sg
+H=60
+Nm=SETUP-INFORMATION$
+SgTp=4
+]
+[
+ObjTp=Sg
+H=61
+Nm=RECORD-INFORMATION$
+SgTp=4
+]

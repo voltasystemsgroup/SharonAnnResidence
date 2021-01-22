@@ -1,0 +1,10 @@
+Calling ProjMgr.CompileTargets() for Console Processor v5+.csp
+Returned from ProjMgr.CompileTargets() for <Console Processor v5+.csp>: Result: 0
+Calling ProjMgr.CompileTargets() for Crestron Name Resolution Engine v1_0_2.csp
+Returned from ProjMgr.CompileTargets() for <Crestron Name Resolution Engine v1_0_2.csp>: Result: 0
+Calling ProjMgr.CompileTargets() for Integra DTR Processor.csp
+Returned from ProjMgr.CompileTargets() for <Integra DTR Processor.csp>: Result: 0
+Calling ProjMgr.CompileTargets() for Integra DTR Feedback v2.csp
+Returned from ProjMgr.CompileTargets() for <Integra DTR Feedback v2.csp>: Result: 0
+Calling ProjMgr.LinkTargets()...
+Returned from ProjMgr.LinkTargets(): Result: 0

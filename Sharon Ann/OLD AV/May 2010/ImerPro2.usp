@@ -1,0 +1,836 @@
+/***********************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+***********************************************************************/
+/*
+Dealer Name: Crestron Electronics
+System Name:
+System Number:
+Programmer: CRR
+Comments:
+*/
+
+/***********************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+***********************************************************************/
+#SYMBOL_NAME "Imerge SoundServer Processor Version 2"
+#HINT "Processes all information received from the Imerge system"
+#DEFINE_CONSTANT PlayStatus 49
+#DEFINE_CONSTANT TrackStatus 50
+#DEFINE_CONSTANT TrackTitles 51
+#DEFINE_CONSTANT Database 52
+#DEFINE_CONSTANT DISC 53
+#DEFINE_CONSTANT ARTIST 54
+#DEFINE_CONSTANT GENRE 55
+#DEFINE_CONSTANT ARTISTMEDIA 56
+#DEFINE_CONSTANT GENREMEDIA 57
+#DEFINE_CONSTANT ARTISTMEDIA2 65 
+#DEFINE_CONSTANT GENREMEDIA2 66
+#DEFINE_CONSTANT PLAYLIST 67
+#DEFINE_CONSTANT SEARCHDISC 68
+#DEFINE_CONSTANT SEARCHPLAYLIST 69
+#DEFINE_CONSTANT SETUPDATA 81
+#DEFINE_CONSTANT SETUPNEWALBUM 82
+#DEFINE_CONSTANT NEWPLAYLISTNAME 83
+#DEFINE_CONSTANT NEWPLAYLISTTRACKID 84
+#DEFINE_CONSTANT PLAYLISTARTISTSEARCH 85 
+#DEFINE_CONSTANT PLAYLISTMEDIASEARCH 86
+#DEFINE_CONSTANT ARTISTTOTALTRACKS 87
+#DEFINE_CONSTANT RECORDDISCINFO 88
+#DEFINE_CONSTANT RECORDTRACKINFO 89
+#DEFINE_CONSTANT RECORDQUALITIES 90
+#DEFINE_CONSTANT RECORDFREESPACE 79
+#DEFINE_CONSTANT RECORDDETAILS 80
+#DEFINE_CONSTANT PLAYLISTTEST 78
+#DEFINE_CONSTANT ARTISTTEST 77 
+#DEFINE_CONSTANT NEWGENRE 76
+#DEFINE_CONSTANT RECORDTOTALTRACKS 75
+#DEFINE_CONSTANT PLAYFLAG 74
+#DEFINE_CONSTANT ONLINEUPDATE 73
+#DEFINE_CONSTANT SETUPZONE 17
+#DEFINE_CONSTANT RECORDZONE 18
+
+
+#HELP_BEGIN
+For use only within the Crestron suite of Imerge control modules
+#HELP_END
+
+
+/***********************************************************************
+  Include Libraries
+  (Uncomment and include additional librarys as needed)
+***********************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/***********************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+***********************************************************************/
+DIGITAL_INPUT CloseDatabases, ImergeChanged;
+ANALOG_INPUT TracksPerScreen, MaxCharacters;
+// STRING_INPUT 
+BUFFER_INPUT Imerge_Rx$[4000];
+
+// DIGITAL_OUTPUT 
+ANALOG_OUTPUT Status1;
+ANALOG_OUTPUT Status2;
+ANALOG_OUTPUT Status3;
+ANALOG_OUTPUT Status4;
+ANALOG_OUTPUT Status5;
+ANALOG_OUTPUT Status6;
+ANALOG_OUTPUT Status7;
+ANALOG_OUTPUT Status8;
+ANALOG_OUTPUT Status9;
+ANALOG_OUTPUT Status10;
+ANALOG_OUTPUT Status11;
+ANALOG_OUTPUT Status12;
+ANALOG_OUTPUT Status13;
+ANALOG_OUTPUT Status14;
+ANALOG_OUTPUT Status15;
+ANALOG_OUTPUT Status16; 
+STRING_OUTPUT GenreMarker$;
+STRING_OUTPUT GenreCount$;
+STRING_OUTPUT GenreMediaMarker$;
+STRING_OUTPUT GenreMediaCount$;
+STRING_OUTPUT ArtistMarker$;
+STRING_OUTPUT ArtistCount$;
+STRING_OUTPUT ArtistMediaMarker$;
+STRING_OUTPUT ArtistMediaCount$;
+STRING_OUTPUT MediaMarker$;
+STRING_OUTPUT MediaCount$;
+STRING_OUTPUT PlaylistMarker$;
+STRING_OUTPUT PlayListCount$;
+STRING_OUTPUT Imerge_Tx$, ZoneInformation$[18];
+
+/***********************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+***********************************************************************/
+INTEGER RxOk, Tempchar, Zone, Marker1, Marker2, MArker3, MArker4, Marker5, Marker6;
+INTEGER remainder, length, i, Status, StatusInt[17], Response, LastTrack, FirstTrack, Flag, Whole, Frac, BPS; 
+INTEGER Counter, MediaClosedFlag, ArtistClosedFlag, GenreClosedFlag, PlaylistClosedFlag;
+STRING TempString$[1000], State$[10], TempDiscId$[12], DiscId$[17][12];
+STRING GenreMarkerInt$[12], ArtistMarkerInt$[12], MediaMarkerInt$[12], PlaylistMarkerInt$[12], Temp$[80];
+STRING TempTrackId$[12], TrackId$[17][12], DatabaseReturned$[12], MarkerReturned$[12], CountReturned$[4];
+STRING BrowseId$[12], BrowseName$[40], BrowseArtist$[40], BrowseGenre$[40], ArtistMediaMarkerInt$[12], GenreMediaMarkerInt$[12];
+STRING CacheClosed$[16], FreeSpace$[12];
+ 
+Function UpdateZoneStatus()
+	{
+	Switch(Zone)
+		{
+		Case(1): {Status1 = Status; }
+		Case(2): {Status2 = Status; }
+		Case(3): {Status3 = Status; }
+		Case(4): {Status4 = Status; }
+		Case(5): {Status5 = Status; }
+		Case(6): {Status6 = Status; }
+		Case(7): {Status7 = Status; }
+		Case(8): {Status8 = Status; }
+		Case(9): {Status9 = Status; }
+		Case(10): {Status10 = Status; }
+		Case(11): {Status11 = Status; }
+		Case(12): {Status12 = Status; }
+		Case(13): {Status13 = Status; }
+		Case(14): {Status14 = Status; }
+		Case(15): {Status15 = Status; }
+		Case(16): {Status16 = Status; }
+		}
+	}
+
+Function ProcessPlayFlag()
+	{
+	Marker1 = Find("<RANDOM>", TempString$);
+   	Marker2 = Find("<REPEAT>", TempString$, Marker1);
+	Marker3 = Find("~", TempString$, Marker2);
+	State$ = mid(TempString$, Marker1 + 8, Marker2 - Marker1 - 8);
+	if(State$ = "ON")
+		{
+   		StatusInt[Zone] = StatusInt[Zone] | 0x0008;
+   		StatusInt[Zone] = StatusInt[Zone] & 0x00DF;
+   		Status = StatusInt[Zone];
+   		}
+   	else
+   		{
+   		StatusInt[Zone] = StatusInt[Zone] | 0x0020;
+   		StatusInt[Zone] = StatusInt[Zone] & 0x00F7;
+   		Status = StatusInt[Zone];
+   		}
+   	State$ = mid(TempString$, Marker2 + 8, Marker3 - Marker2 - 8);
+   	if(State$ = "ON")
+   		{
+   		StatusInt[Zone] = StatusInt[Zone] | 0x0010;
+   		StatusInt[Zone] = StatusInt[Zone] & 0x00BF;
+   		Status = StatusInt[Zone];
+   		}
+   	else
+   		{                        
+   		StatusInt[Zone] = StatusInt[Zone] | 0x0040;
+   		StatusInt[Zone] = StatusInt[Zone] & 0x00EF;
+   		Status = StatusInt[Zone];
+   		}
+   	}
+
+PUSH CloseDatabases
+	{
+	Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><CLOSE><MARKER>" + GenreMarkerInt$ + "~\n";
+	processlogic();
+	Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><CLOSE><MARKER>" + GenreMediaMarkerInt$ + "~\n";
+	processlogic();
+	Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><CLOSE><MARKER>" + ArtistMarkerInt$ + "~\n";
+	processlogic();
+	Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><CLOSE><MARKER>" + ArtistMediaMarkerInt$ + "~\n";
+	processlogic();
+	Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><CLOSE><MARKER>" + MediaMarkerInt$ + "~\n";
+	processlogic();
+	Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><CLOSE><MARKER>" + PlaylistMarkerInt$ + "~\n";
+	processlogic();
+	}
+	
+RELEASE ImergeChanged
+	{
+	if(MediaClosedFlag = 1)
+		{
+		MediaClosedFlag = 0;
+		Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><OPEN>MEDIA~\n#CN01F4#@server@$SEARCH$<CACHE><OPEN>ARTISTMEDIA~\n#CN01F4#@server@$SEARCH$<CACHE><OPEN>GENREMEDIA~\n";
+		processlogic();
+		}
+	if(ArtistClosedFlag = 1)
+		{
+		ArtistClosedFlag = 0;
+		Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><OPEN>ARTIST~\n#CN01F4#@server@$SEARCH$<CACHE><OPEN>ARTISTMEDIA~\n";
+		processlogic();
+		}
+	if(GenreClosedFlag = 1)
+		{
+		GenreClosedFlag = 0;
+		Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><OPEN>GENRE~\n#CN01F4#@server@$SEARCH$<CACHE><OPEN>GENREMEDIA~\n";
+		processlogic();
+		}
+	if(PlaylistClosedFlag = 1)
+		{
+		PlaylistClosedFlag = 0; 
+		Imerge_Tx$ = "#CN01F4#@server@$SEARCH$<CACHE><OPEN>PLAYLIST~\n";
+		}
+	}
+		                   					
+CHANGE Imerge_Rx$
+	{
+	if(RxOk = 1)
+		{
+		RxOk = 0;   
+    	While(find("\x0A", Imerge_Rx$) > 0)
+    		{
+    		TempString$ = Remove("\x0A", Imerge_Rx$);
+    		if((len(TempString$) > 0) && (find("<ERROR>", Tempstring$) = 0))
+    			{
+    			//Print("Received %s\n", TempString$);
+    			if(find("$UPDATE$", TempString$) > 0)
+    				{
+    				Zone = atoi(tempstring$);
+					Marker1 = find("<MODE>", Tempstring$);
+					If(Marker1 > 0)
+						{
+						Marker2 = find("<ID>", TempString$, Marker1);
+						Marker3 = find("<POS>", TempString$, Marker2);
+						State$ = mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6);
+						if(State$ = "PLAY")
+   							{
+   							Status = (StatusInt[Zone] & 0xfff9) | 0x0001;
+   							StatusInt[Zone] = Status;
+   							}
+   						else if(State$ = "STOP")
+   							{
+   							Status = (StatusInt[Zone] & 0xfffa) | 0x0002;
+   							StatusInt[Zone] = Status;
+   							}
+   						else if(State$ = "PAUSE")
+   							{
+   							Status = (StatusInt[Zone] & 0xfffd) | 0x0005;
+   							StatusInt[Zone] = Status;
+   							}
+   						TempTrackId$ = mid(TempString$, Marker2 + 4, Marker3 - Marker2 - 4);
+   						if(TempTrackId$ <> TrackId$[Zone])
+   							{
+   							MakeString(Imerge_Tx$, "#CN%02dF1#@Z%02d@$STATUS$<PLAY>~\x0D\x0A#CN%02dF2#@Z%02d@$STATUS$<TRACK>~\x0D\x0A", Zone, Zone, Zone, Zone);
+   							}
+   						TrackId$[Zone] = TempTrackId$;
+   						call UpdateZoneStatus();
+   						}
+   					else if(find("<RECORD>", Tempstring$) > 0)
+   						{
+   						Marker1 = find("<INDEX>", Tempstring$);
+   						Marker2 = find("<ID>", Tempstring$, Marker1);
+   						Marker3 = find("<TOTAL>", Tempstring$, Marker2);
+   						Marker4 = find("<MEDIA>", Tempstring$, Marker3);
+   						if((Marker1 > 0) && (Marker2 > 0))
+   							{
+   							Makestring(ZoneInformation$[RecordZone], "\x1B\x26%s\x1B\x27%s", mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7), mid(Tempstring$, Marker3 + 7, Marker4 - Marker3 - 7));
+   							}
+   						else
+   							{
+   							ZoneInformation$[RecordZone] = "\x1B\x260\x1B\x270";
+   							}
+   						}
+   					else if(find("<CACHE>", Tempstring$) > 0)
+   						{
+   						Marker1 = find("<CACHE>", Tempstring$);
+   						Marker2 = find("<CLOSE>", Tempstring$, Marker1 + 6);
+   						CacheClosed$ = mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7);
+   						if(CacheClosed$ = "<MEDIA>")
+   							{
+   							MediaClosedFlag = 1;
+   							}
+   						else if(CacheClosed$ = "<ARTIST>")
+   							{
+   							ArtistClosedFlag = 1;
+   							}
+   						else if(CacheClosed$ = "<PLAYLIST>")
+   							{ 
+   							PlaylistClosedFlag = 1;
+   							}
+   						else if(CacheClosed$ = "<GENRE>")
+   							{   
+   							GenreClosedFlag = 1;
+   							}
+   						}
+   					else if(find("<LOOKUP>", Tempstring$) > 0)
+   						{
+   						Marker1 = find("<LOOKUP>", Tempstring$);
+   						Marker2 = find("~", Tempstring$, Marker1 + 8);
+   						Makestring(ZoneInformation$[RecordZone], "\x1B\x2A%s", mid(Tempstring$, Marker1 + 8, Marker2 - Marker1 - 8));
+   						}
+   					else if(find("<PLAY><FLAG>", Tempstring$) > 0)
+   					 	{
+   					 	Call ProcessPlayFlag();
+   					 	}
+   					 else if(find("<CD>1<MEDIA>~", Tempstring$) > 0)
+   					 	{
+   					 	ZoneInformation$[RecordZone] = "\x1B\x2Cclear"; 
+   					 	processlogic();
+   					 	ZoneInformation$[RecordZone] = "\x1B\x2CUPDATED";
+   					 	}
+   					 else if((find("<CD>01<OPEN>~", Tempstring$) > 0) || (find("<CD>1<TRAY>OPEN~", Tempstring$) > 0))
+   					 	{
+   					 	ZoneInformation$[RecordZone] = "\x1B\x2Cclear"; 
+   					 	processlogic();
+   					 	ZoneInformation$[RecordZone] = "\x1B\x2CREMOVE";
+   					 	}
+   					 else if(find("<ONLINE>", Tempstring$) > 0)
+   					 	{
+   					 	Marker1 = find(">", Tempstring$);
+   					 	Marker2 = find("<", Tempstring$, Marker1 + 1);
+   					 	if(Marker2 = 0)
+   					 		Marker2 = find("~", Tempstring$);
+   					 	Makestring(ZoneInformation$[RecordZone], "\x1B\x2D%s", Mid(Tempstring$, MArker1 + 1, Marker2 - Marker1 - 1));
+   					 	}
+       				Call updateZoneStatus();
+    				}
+    			else
+    				{                        
+    				Marker1 = find("@", Tempstring$);
+    				Marker2 = find("@", TempString$, Marker1);
+    				Zone = atoi(mid(Tempstring$, Marker1 + 1, Marker2 - Marker1 - 1));
+		    		Response = Byte(TempString$, Marker1 + 6);
+		    		Switch(Response)
+   			 			{
+    					Case(TrackStatus):
+    						{ 
+    						MArker1 = find("<NAME>", TempString$);
+    						MArker2 = find("<ARTIST>", TempString$, Marker1);
+    						Marker3 = find("~", TempString$, MArker2);
+    						Marker4 = find("<ORIG>", TempString$);
+    						ZoneInformation$[Zone] = "\x1B\x23" + left(mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6), MaxCharacters) + "\x1B\x24" + left(mid(TempString$, Marker2 + 8, Marker3 - Marker2 - 8), MaxCharacters);
+                            processlogic();
+    						Makestring(ZoneInformation$[Zone], "\x1B\x29%s", mid(Tempstring$, Marker4 + 6, 2));
+    						processlogic();
+    						}
+    					Case(PlayStatus):
+    						{
+    						MArker1 = find("<TYPE>SPLIST<ID>", Tempstring$);
+    						if(MArker1 = 0)
+    							{ 
+    							MArker1 = find("<NAME>", TempString$);
+    							MArker2 = find("<ARTIST>", TempString$, Marker1);
+    							Marker3 = find("<EOF>", Tempstring$, Marker2);
+    							if(Marker3 = 0) Marker3 = find("~", TempString$, MArker2);   							
+    							ZoneInformation$[Zone] = "\x1B\x21" + left(mid(TempString$, MArker1 + 6, Marker2 - Marker1 - 6), MaxCharacters) + "\x1B\x22" + left(mid(TempString$, Marker2 + 8, Marker3 - Marker2 - 8), MaxCharacters) + "\x1B\x27MEDIA";
+                                processlogic();
+    							Marker1 = find("MEDIA<ID>", TempString$);
+    							Marker2 = find("<TOTAL>", TempString$, MArker1);
+    							TempDiscId$ = mid(TempString$, Marker1 + 9, Marker2 - Marker1 - 9);
+    							Makestring(ZoneInformation$[Zone], "\x1B\x2B%s", TempDiscId$);
+    							processlogic();
+    							if(TempDiscId$ <> DiscId$[Zone])
+    								{
+    								MakeString(Imerge_Tx$, "#CN%02dF3#@server@$SEARCH$<MEDIA><ID>%s<TRACK><FROM>1<FOR>%d<NONE>~\x0D\x0A", ZOne, TempDiscId$, TracksPerScreen);
+    								}    
+    							DiscId$[Zone] = TempDiscId$;
+    							Makestring(ZoneInformation$[Zone], "\x1B\x28%s", mid(TempString$, Marker2 + 7, 3));
+    							processlogic();
+    							}
+    						else
+    							{
+    							MArker1 = find("<ID>", Tempstring$);
+    							Marker2 = find("<TOTAL>", Tempstring$, Marker1);
+    							Marker3 = find("<NAME>", Tempstring$, Marker2);
+    							Marker4 = find("<EOF>", Tempstring$, Marker3);
+    							if(Marker4 = 0) Marker4 = find("~", Tempstring$, Marker3);
+    							ZoneInformation$[Zone] = "\x1B\x21" + left(mid(TempString$, MArker3 + 6, Marker4 - Marker3 - 6), MaxCharacters) + "\x1B\x22Playlist\x1B\x27PLAYLIST";
+    							Processlogic();
+    							TempDiscId$ = mid(TempString$, Marker1 + 4, Marker2 - Marker1 - 4);
+    							Makestring(ZoneInformation$[Zone], "\x1B\x2B%s", TempDiscId$);
+    							processlogic();
+    							if(TempDiscId$ <> DiscId$[Zone])
+    								{
+    								MakeString(Imerge_Tx$, "#CN%02dF3#@server@$SEARCH$<PLAYLIST><ID>%s<TRACK><FROM>1<FOR>%d<NONE>~\x0D\x0A", ZOne, TempDiscId$, TracksPerScreen);
+    								}
+    							DiscId$[Zone] = TempDiscId$;
+    							Makestring(ZoneInformation$[Zone], "\x1B\x28%s", mid(TempString$, Marker2 + 7, 3));
+    							processlogic();				
+    							}
+    						}
+    					Case(TrackTitles):
+    						{
+    						Marker1 = find("<FROM>", TempString$);
+    						Marker2 = find("<FOR>", TempString$, Marker1);
+    						LastTrack = atoi(mid(TempString$, Marker2 + 5, 3));
+    						Makestring(ZoneInformation$[Zone], "\x1B\x2A%s", mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6));
+                            processlogic();
+    						Marker4 = find("<AT>", TempString$, Marker2);
+    						if((LastTrack > 0) && (Marker4 > 0))
+    							{ 
+    							Counter = 0;
+    							For(i = 1 to LastTrack)
+    								{
+    								Marker1 = find("<ID>", TempString$, Marker4);
+    								MArker2 = find("<NAME>", TempString$, Marker1);
+    								Marker3 = find("<AT>", TempString$, Marker2);
+    								if(Marker3 = 0)
+    									{
+    									Marker3 = find("<EOF>", Tempstring$, Marker2);
+    									if(Marker3 = 0)	Marker3 = find("~", TempString$, Marker2);
+    									}
+    								Temp$ = mid(Tempstring$, Marker2 + 6, Marker3 - Marker2 - 6);
+    								if(find("<NONE>", Temp$) = 0)
+    									{
+										MakeString(ZoneInformation$[Zone], "\x1B%%\x1B\x1B%s%s\x1B\x1B%s%s. %s\x1B\x2C\x1B\x1B%s%s", chr(33 + counter * 2), mid(TempString$, Marker4 + 4, Marker1 - Marker4 - 4), chr(34 + counter * 2), mid(TempString$, Marker4 + 4, Marker1 - Marker4 - 4), left(Temp$, MaxCharacters), chr(39 + counter), mid(Tempstring$, Marker1 + 4, Marker2 - Marker1 - 4));
+    									}
+    								else
+    									{
+    									MakeString(ZoneInformation$[Zone], "\x1B%%\x1B\x1B%s%s\x1B\x1B%s%s. [UNREC] %s\x1B\x2C\x1B\x1B%s%s", chr(33 + counter * 2), mid(TempString$, Marker4 + 4, Marker1 - Marker4 - 4), chr(34 + counter * 2), mid(TempString$, Marker4 + 4, Marker1 - Marker4 - 4), left(mid(Tempstring$, Marker2 + 6, Marker3 - Marker2 - 12), MaxCharacters - 7), chr(39 + counter), mid(Tempstring$, Marker1 + 4, Marker2 - Marker1 - 4));
+    									}
+    								processlogic();                                         
+    								Marker4 = Marker3;
+    								Counter = Counter + 1;		              
+    								}
+    							if(Counter < TracksPerScreen)
+    								{
+    								For(i = Counter to TracksPerScreen - 1)
+    									{
+    									Makestring(ZoneInformation$[Zone], "\x1B%%\x1B\x1B%s\x20", chr(34 + i * 2));
+    									processlogic();
+    									}
+    								}
+    							}
+    						}
+    					case(Database):
+    						{
+    						Marker1 = find("<OPEN>", TempString$);
+    						Marker2 = find("<MARKER>", TempString$, Marker1);
+    						Marker3 = find("<COUNT>", TempString$, Marker2);
+    						Marker4 = find("~", TempString$, Marker3);
+    						DatabaseReturned$ = mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6);
+    						MarkerReturned$ = mid(TempString$, Marker2 + 8, Marker3 - Marker2 - 8);
+    						CountReturned$ = mid(TempString$, Marker3 + 7, Marker4 - Marker3 - 7);
+    						if(DatabaseReturned$ = "GENRE")
+    							{
+    							GenreMarker$ = MarkerReturned$;
+    							GenreCount$ = CountReturned$;
+    							GenreMarkerInt$ = MarkerReturned$;
+    							}
+    						if(DatabaseReturned$ = "GENREMEDIA")
+    							{
+    							GenreMediaMarker$ = MarkerReturned$;
+    							GenreMediaMarkerInt$ = MarkerReturned$;
+    							GenreMediaCount$ = CountReturned$;
+    							}
+    						if(DatabaseReturned$ = "ARTIST")
+    							{
+    							ArtistMarker$ = MarkerReturned$;
+    							ArtistCount$ = CountReturned$;
+    							ArtistMarkerInt$ = MarkerReturned$;
+    							}
+    						if(DatabaseReturned$ = "ARTISTMEDIA")
+    							{
+    							ArtistMediaMarker$ = MarkerReturned$;
+    							ArtistMediaMarkerInt$ = MarkerReturned$;
+    							ArtistMediaCount$ = CountReturned$;
+    							} 
+    						if(DatabaseReturned$ = "MEDIA")
+    							{
+    							MediaMarker$ = MarkerReturned$;
+    							MediaCount$ = CountReturned$;
+    							MediaMarkerInt$ = MarkerReturned$;
+    							}
+    						if(DatabaseReturned$ = "PLAYLIST")
+    							{
+    							PlaylistMarker$ = MarkerReturned$;
+    							PlayListCount$ = CountReturned$;
+    							PlaylistMarkerInt$ = MarkerReturned$;
+    							Makestring(Imerge_Tx$, "#CN00FN#@server@$SEARCH$<CACHE><FIND><MARKER>%s<START>\\xFF\\xFF\\xFF\\xFF<NEXT>~\n", PlaylistMarkerInt$);
+    							}
+    						}
+    					Case(DISC):
+    						{
+    						Marker1 = find("<NAME>", TempString$);
+    						Marker2 = find("<ID>", TempString$, Marker1);
+    						Marker3 = find("<ARTIST>", TempString$, Marker2);
+    						Marker4 = find("<GENRE>", TempString$, Marker3);
+    						Marker5 = find("<EOF>", Tempstring$, Marker4);
+    						if(Marker5 = 0) Marker5 = find("~", TempString$, Marker4);
+    						BrowseID$ = mid(TempString$, Marker2 + 4, Marker3 - MArker2 - 4);
+    						BrowseName$ = left(mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6), MaxCharacters);
+    						BrowseArtist$ = left(mid(TempString$, Marker3 + 8, Marker4 - Marker3 - 8), MaxCharacters);
+    						BrowseGenre$ = mid(TempString$, MArker4 + 7, Marker5 - Marker4 - 7);
+    						Makestring(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B\x21%s\x1B\x1B\x22%s\x1B\x1B\x23%s\x1B\x1B\x24%s", BrowseID$, BrowseName$, BrowseArtist$, BrowseGenre$);
+    						}
+    					Case(ARTIST):
+    						{
+    						MArker1 = find("<NAME>", TempString$);
+    						Marker2 = find("<EOF>", Tempstring$, Marker1);
+    						if(Marker2 = 0) Marker2 = find("~", TempString$, Marker1);
+    						Makestring(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B\x23%s\x1B\x1B\x21%s", left(mid(TempString$, Marker1 + 6, MArker2 - MArker1 - 6), MaxCharacters), mid(TempString$, Marker1 + 6, MArker2 - MArker1 - 6));
+    						}
+    					Case(GENRE):
+    						{
+    						Marker1 = find("<NAME>", TempString$);
+    						Marker2 = find("<EOF>", Tempstring$, Marker1);
+    						if(Marker2 = 0) Marker2 = find("~", TempString$, Marker1);
+    						Makestring(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B\x24%s\x1B\x1B\x21%s", mid(TempString$, Marker1 + 6, MArker2 - MArker1 - 6), mid(TempString$, Marker1 + 6, MArker2 - MArker1 - 6));
+    						}
+    					Case(PLAYLIST):
+    						{
+    						Marker1 = find("<NAME>", TempString$);
+    						Marker2 = find("<ID>", Tempstring$, Marker1);
+    						Marker3 = find("<EOF>", Tempstring$, Marker2);
+    						if(Marker3 = 0) Marker3 = find("~", Tempstring$, Marker2);
+    						Makestring(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B\x21%s\x1B\x1B\x26%s", mid(Tempstring$, Marker2 + 4, Marker3 - Marker2 - 4), left(mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6), MaxCharacters));
+    						}
+    					Case(ARTISTMEDIA):
+    						{
+    						Marker1 = find("<FROM>", TempString$);
+    						Marker2 = find("<FOR>", TempString$, Marker1);
+    						Marker3 = find("<EOF>", Tempstring$, Marker2);
+    						if(Marker3 = 0) Marker3 = find("~", TempString$, Marker1);
+    						if(Marker2 = 0) Marker2 = Marker3;
+    						MakeString(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B%%%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+							Makestring(Imerge_Tx$, "#CN%02dFA#@server@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%s<FOR>1~\x0D\x0A", Zone, ArtistMediaMarkerInt$, mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6)); 
+    						}
+    					Case(ARTISTMEDIA2):
+    						{
+    						Marker1 = find("<NAME>", TempString$);
+    						MArker2 = find("<MEDIA>", TempString$, Marker1);
+    						MArker3 = find("<ID>", TempString$, MArker2);
+    						Marker4 = find("<EOF>", Tempstring$, Marker3);
+    						if(Marker4 = 0) Marker4 = find("~", TempString$, Marker3);
+    						Makestring(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B\x21%s\x1B\x1B\x22%s\x1B\x1B\x23%s", mid(Tempstring$, Marker3 + 4, Marker4 - Marker3 - 4), left(mid(Tempstring$, Marker2 + 7, Marker3 - Marker2 - 7), MaxCharacters), left(mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6), MaxCharacters));
+    						}
+    					Case(GENREMEDIA):
+    						{
+    						Marker1 = find("<FROM>", TempString$);
+    						Marker2 = find("<FOR>", TempString$, Marker1);
+    						Marker3 = find("<EOF>", Tempstring$, Marker2);
+    						if(Marker3 = 0) Marker3 = find("~", TempString$, Marker1);
+    						if(Marker2 = 0) Marker2 = Marker3;
+    						MakeString(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B%%%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+							Makestring(Imerge_Tx$, "#CN%02dFB#@server@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%s<FOR>1~\x0D\x0A", Zone, GenreMediaMarkerInt$, mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6)); 
+    						}
+    					Case(GENREMEDIA2):
+    						{
+    						Marker1 = find("<NAME>", TempString$);
+    						MArker2 = find("<MEDIA>", TempString$, Marker1);
+    						MArker3 = find("<ID>", TempString$, MArker2);
+    						MArker4 = find("<ARTIST>", TempString$, Marker3);
+    						Marker5 = find("<EOF>", Tempstring$, Marker4);
+    						if(Marker5 = 0) Marker5 = find("~", TempString$, Marker4);
+    						Makestring(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B\x21%s\x1B\x1B\x22%s\x1B\x1B\x23%s\x1B\x1B\x24%s", mid(Tempstring$, Marker3 + 4, Marker4 - Marker3 - 4), Left(mid(Tempstring$, Marker2 + 7, Marker3 - Marker2 - 7), MaxCharacters), left(mid(Tempstring$, Marker4 + 8, Marker5 - Marker4 - 8), MaxCharacters), Left(mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6), MaxCharacters));
+    						}
+    					Case(SEARCHDISC):
+    						{
+    						Marker1 = find("<FROM>", TempString$);
+    						Marker2 = find("~", Tempstring$, Marker1);
+    						Makestring(Imerge_Tx$, "#CN%02dF5#@server@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%s<FOR>1~\x0D\x0A", Zone, MediaMarkerInt$, mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6)); 
+    						MakeString(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B%%%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+    						}
+    					Case(SEARCHPLAYLIST):
+    						{
+    						Marker1 = find("<FROM>", TempString$);
+    						Marker2 = find("~", Tempstring$, Marker1);
+    						Makestring(Imerge_Tx$, "#CN%02dFC#@server@$SEARCH$<CACHE><LIST><MARKER>%s<FROM>%s<FOR>1~\x0D\x0A", Zone, PlaylistMarkerInt$, mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6)); 
+							MakeString(ZoneInformation$[Zone], "\x1B\x26\x1B\x1B%%%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+    						}
+    					Case(SETUPDATA):
+    						{
+    						Marker1 = find("<NAME>", Tempstring$);
+    						Marker2 = find("<ARTIST>", Tempstring$, Marker1 + 6);
+    						Marker3 = find("<MEDIA><ID>", Tempstring$, Marker2 + 8);
+    						Marker4 = find("<NAME>", Tempstring$, Marker3 + 11);
+    						Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x21%s\x1B\x1B\x22%s\x1B\x1B\x23%s", left(mid(Tempstring$, Marker1 + 6, MArker2 - Marker1 - 6), MaxCharacters), left(mid(Tempstring$, Marker2 + 8, Marker3 - Marker2 - 8), MaxCharacters), mid(Tempstring$, Marker3 + 11, Marker4 - Marker3 - 11));
+    						}
+    					Case(SETUPNEWALBUM):
+    						{
+    						if(find("<PLAYLIST>", Tempstring$) = 0)
+    							{
+    							Marker1 = find("<TOTAL>", Tempstring$);
+    							Marker2 = find("<SOURCE>", Tempstring$, Marker1 + 6);
+    							Marker3 = find("<NAME>", Tempstring$, Marker2 + 8);
+    							Marker4 = find("<ARTIST>", Tempstring$, Marker3 + 6);
+    							Marker5 = find("<GENRE>", Tempstring$, MArker4 + 8);
+    							Marker6 = find("~", Tempstring$, Marker5 + 6);
+    							Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x24%s\x1B\x1B%%%s\x1B\x1B\x26%s\x1B\x1B\x2F%s", left(mid(Tempstring$, Marker3 + 6, Marker4 - Marker3 - 6), MaxCharacters), left(mid(Tempstring$, Marker4 + 8, Marker5 - Marker4 - 8), MaxCharacters), mid(Tempstring$, Marker5 + 7, Marker6 - Marker5 - 7), mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7));
+    							}
+    						else
+    							{
+    							Marker1 = find("<TOTAL>", Tempstring$);
+    							Marker2 = find("<LEN>", Tempstring$, Marker1 + 7);
+    							Marker3 = find("<NAME>", Tempstring$, Marker2 + 5);
+    							Marker4 = find("~", Tempstring$, Marker3 + 6);
+    							Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x24%s\x1B\x1B%%Playlist\x1B\x1B\x26Playlist\x1B\x1B\x2F%s", left(mid(Tempstring$, Marker3 + 6, Marker4 - Marker3 - 6), MaxCharacters), mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7));
+    							}
+    						}
+    					Case(NEWPLAYLISTNAME):
+    						{
+    						Marker1 = find("<PLAYLIST>", Tempstring$);
+    						Marker2 = find("~", Tempstring$, Marker1 + 10);
+    						Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x30%s", mid(Tempstring$, Marker1 + 10, Marker2 - Marker1 - 10));
+    						}
+    					Case(NEWPLAYLISTTRACKID):
+    						{
+    						if(find("<NONE>~", Tempstring$) = 0)
+    						Marker1 = find("<MEDIA><ID>", Tempstring$);
+    						Marker2 = find("<ID>", TEmpstring$, Marker1 + 11);
+    						Marker3 = find("<NAME>", Tempstring$, Marker2 + 4);
+    						if(find("<NONE>", Tempstring$, Marker3 + 6) = 0)
+    							Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x31%s", mid(Tempstring$, Marker2 + 4, Marker3 - Marker2 - 4));
+    						else
+    							ZoneInformation$[SETUPZONE] = "\x1B\x2C\x1B\x1B\x31INVALID";
+    						}
+    					Case(PLAYLISTARTISTSEARCH):
+    						{
+    						MArker1 = find("<FROM>", Tempstring$);
+    						Marker2 = find("<FOR>", Tempstring$, MArker1 + 6);
+    						Marker3 = find("~", Tempstring$, Marker2 + 5);
+    						if(Marker2 > 0)	Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x32%s\x1B\x1B\x33%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6), mid(Tempstring$, Marker2 + 5, Marker3 - Marker2 - 5));
+    						else Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x32%s\x1B\x1B\x331", mid(Tempstring$, Marker1 + 6, Marker3 - Marker1 - 6));
+    						}
+    					Case(PLAYLISTMEDIASEARCH):
+    						{ 
+    						Marker1 = find("<ID>", Tempstring$);
+    						Marker2 = find("~", Tempstring$, MArker1 + 4);
+    						Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x34%s", mid(Tempstring$, Marker1 + 4, Marker2 - Marker1 - 4));
+    						}
+    					Case(ARTISTTOTALTRACKS):
+    						{
+    						Marker1 = find("<TOTAL>", Tempstring$);
+    						Marker2 = find("<SOURCE>", Tempstring$, Marker1 + 7);
+    						Makestring(ZoneInformation$[SETUPZONE], "\x1B\x2C\x1B\x1B\x35%s", mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7));
+    						}
+    					Case(RECORDDISCINFO):
+    						{
+    						Marker1 = find("<NAME>", Tempstring$);
+    						Marker2 = find("<ARTIST>", Tempstring$, Marker1 + 6);
+    						Marker3 = find("<GENRE>", Tempstring$, Marker2 + 8);
+    						Marker4 = find("<LOOKUP>", Tempstring$, Marker3 + 7);
+    						if(Marker1 > 0) MakeString(ZoneInformation$[RecordZone], "\x1B\x22%s\x1B\x23%s\x1B\x24%s", left(mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6), MaxCharacters), Left(mid(Tempstring$, Marker2 + 8, Marker3 - Marker2 - 8), MaxCharacters), Left(mid(Tempstring$, Marker3 + 7, Marker4 - Marker3 - 7), MaxCharacters));
+    						else 
+    							{
+    							ZoneInformation$[RecordZone] = "\x1B\x22 \x1B\x23 \x1B\x24 ";
+    							processlogic();
+    							For(i = 1 to 8)
+    								{
+    								MakeString(ZoneInformation$[RecordZone], "\x1B\x21\x1B\x1B%s\x20", chr(i + 32));
+    								processlogic();
+    								}
+    							}
+    						}
+    					Case(RECORDTRACKINFO):
+    						{
+    						Marker1 = find("<FROM>", TempString$);
+    						Marker2 = find("<TO>", TempString$, Marker1);
+    						FirstTrack = atoi(mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+    						LastTrack = atoi(mid(TempString$, Marker2 + 5, 3));
+    						Makestring(ZoneInformation$[RecordZone], "\x1B\x2B%s", mid(TempString$, Marker1 + 6, Marker2 - Marker1 - 6));
+                            processlogic();
+    						Marker1 = Marker2;
+    						Marker2 = find("<TRACK>", Tempstring$, Marker1 + 4);
+    						if((Marker1 > 0) && (Marker2 > 0))
+    							{
+    							LastTrack = atoi(mid(TempString$, Marker1 + 4, Marker2 - Marker1 - 4)); 
+    							Marker1 = Marker2;
+    							counter = 1;
+    							For(i = FirstTrack to LastTrack)
+    								{
+    								Marker2 = find("<NAME>", TempString$, Marker1);
+    								Marker3 = find("<TRACK>", TempString$, Marker2);
+    								Temp$ = mid(TempString$, Marker1 + 7, Marker2 - Marker1 - 7);
+    								Marker4 = find("<LEN>", Temp$);
+    								if(Marker3 = 0)
+    									{
+    									Marker3 = find("<EOF>", Tempstring$, Marker2);
+    									if(Marker3 = 0)	Marker3 = find("~", TempString$, Marker2);
+    									}
+    								if(Marker4 > 0)
+    									{
+    									Temp$ = itoa(atoi(Temp$));
+    									}
+    								MakeString(ZoneInformation$[RecordZone], "\x1B\x21\x1B\x1B%s%s. %s", chr(counter + 32), Temp$, left(mid(Tempstring$, Marker2 + 6, Marker3 - Marker2 - 6), MaxCharacters));
+    								processlogic();                                         
+    								Marker1 = Marker3;
+    								counter = counter + 1;		              
+    								}
+	   							if(Counter < TracksPerScreen)
+    								{
+    								For(i = Counter to TracksPerScreen)
+    									{
+    									Makestring(ZoneInformation$[RecordZone], "\x1B\x21\x1B\x1B%s\x20", chr(i + 32));
+    									processlogic();
+    									}
+    								}
+    							}				
+       						}
+       					Case(RECORDTOTALTRACKS):
+       						{
+       						Marker1 = find("<AUDIO>", Tempstring$);
+       						MArker2 = find("<MEDIA>", Tempstring$, Marker1);
+       						if((Marker1 > 0) && (Marker2 > 0))
+       							{
+       							Makestring(ZoneInformation$[RecordZone], "\x1B%%%s", mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7));
+       							processlogic();
+       							}
+       						else
+       							{
+       							ZoneInformation$[RecordZone] = "\x1B%%0";
+       							}
+       						}
+       					Case(RECORDQUALITIES):
+       						{             
+       						Marker1 = find("<ID>", Tempstring$);
+       						Marker2 = 1;
+       						Counter = 1; 
+       						Flag = 0;
+       						Temp$ = "";
+       						While((Flag = 0) && (Counter <= 16))
+       							{
+       							Marker2 = find("<ID>", Tempstring$, Marker1 + 4);
+       							if(Marker2 = 0) 
+       								{
+       								Marker2 = find("~", Tempstring$, Marker1 + 4);
+       								Flag = 1;
+       								}
+       							Makestring(Temp$, "%s%02d", Temp$, atoi(mid(Tempstring$, MArker1 + 4, Marker2 - Marker1 - 4)));
+       							Marker1 = Marker2;
+       							Counter = Counter + 1;
+       							}
+       						Makestring(ZoneInformation$[RecordZone], "\x1B\x28%s", Temp$);
+       						}
+       					Case(RECORDFREESPACE):
+       						{
+       						MArker1 = find("<LEN>", Tempstring$);
+       						Marker2 = find("~", Tempstring$, Marker1 + 5);
+       						FreeSpace$ = mid(Tempstring$, MArker1 + 5, Marker2 - Marker1 - 5);
+       						}
+       					Case(RECORDDETAILS):
+       						{
+       						MArker1 = find("<TYPE>", Tempstring$);
+       						Marker2 = find("<BPS>", Tempstring$, Marker1 + 6);
+       						Marker3 = find("<BITS>", Tempstring$, Marker2 + 5);
+       						MArker4 = find("<CHANS>", Tempstring$, Marker3 + 6);
+       						Marker5 = find("<FREQ>", Tempstring$, MArker4 + 7);
+       						Marker6 = find("~", Tempstring$, Marker5 + 6);
+       						Whole = atoi(mid(TempString$, Marker2 + 5, Marker3 - Marker2 - 8));
+       						Frac = atoi(mid(TempString$, Marker3 - 3, 3));
+       						BPS = whole * 8 + ((Frac * 8) / 1000);      
+       						Makestring(ZoneInformation$[RecordZone], "\x1B\x29\x1B\x1B\x21%s\x1B\x1B\x22%dk\x1B\x1B\x23%s\x1B\x1B\x24%s\x1B\x1B%%%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6), BPS, mid(Tempstring$, Marker3 + 6, Marker4 - Marker3 - 6), mid(Tempstring$, Marker5 + 6, Marker6 - Marker5 - 6), FreeSpace$);
+       						}
+       					Case(PLAYLISTTEST):
+       						{
+       						Marker1 = find("<FROM>", Tempstring$);
+       						if(Marker1 > 0)
+       							{
+       							Marker2 = find("~", Tempstring$, Marker1 + 6);
+       							Counter = atoi(mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+       							if(Counter > 0) Makestring(PlayListCount$, "%d", Counter - 1);
+       							}
+       						}
+       					Case(ARTISTTEST):
+       						{
+       						Marker1 = find("<NAME>", Tempstring$);
+       						Marker2 = find("<NONE>", Tempstring$, Marker1);
+       						if(Marker2 <> 0)
+       							{                              
+       							Makestring(Imerge_Tx$, "#CN%02dF0#@server@$DELETE$<ARTIST><MARKER>%s<NAME>%s~\n", SetupZone, ArtistMarkerInt$, mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+       							}
+       						}
+       					Case(NEWGENRE):
+       						{
+       						Marker1 = find("<NAME>", Tempstring$);
+       						Marker2 = find("<EOF>", Tempstring$, Marker1 + 6);
+    						if(Marker2 = 0) Marker2 = find("~", TempString$, Marker1 + 6);
+       						Makestring(ZoneInformation$[SetupZone], "\x1B\x2D%s", mid(Tempstring$, Marker1 + 6, Marker2 - Marker1 - 6));
+       						} 
+       					Case(PLAYFLAG):
+       						{
+       						Call ProcessPlayFlag();
+       						Call UpdateZoneStatus();
+       						}
+       					Case(ONLINEUPDATE):
+       						{
+       						Marker1 = find("<TOTAL>", Tempstring$);
+       						Marker2 = find("<FAILED>", Tempstring$);
+       						MArker3 = find("~", Tempstring$);
+       						If((Marker1 > 0) && (Marker2 > 0))
+       							{
+       							MAkestring(ZoneInformation$[RecordZone], "\x1B\x2E%s\x1B\x2F%s", mid(Tempstring$, Marker1 + 7, Marker2 - Marker1 - 7), mid(Tempstring$, Marker2 + 8, Marker3 - Marker2 - 8));
+       							}
+       						}
+       					}
+    				}   					    					    					 
+    			clearbuffer(tempstring$);
+    			}			    					    					      					   				   		
+   			}
+ 		RxOk = 1;
+   		}
+    }
+
+/***********************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+***********************************************************************/
+
+Function Main()
+	{
+    RxOk = 1;
+    clearbuffer(TempString$);
+    ArtistMarkerInt$ = " ";
+    ArtistMediaMarkerInt$ = " ";
+    GenreMarkerInt$ = " ";
+    GenreMediaMarkerInt$ = " ";
+    MediaMarkerInt$ = " ";
+    PlaylistMarkerInt$ = " ";
+    MediaClosedFlag = 0;
+    ArtistClosedFlag = 0;
+    GenreClosedFlag = 0;
+    PlaylistClosedFlag = 0; 
+    for(i = 1 to 16)
+    	{
+    	DiscId$[i] = " ";
+    	TrackId$[i] = " ";
+    	StatusInt[i] = 0;
+    	}
+	}
+
+
